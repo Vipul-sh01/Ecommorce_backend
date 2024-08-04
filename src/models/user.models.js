@@ -2,18 +2,10 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-const AddressSchema = new mongoose.Schema({
-    street: String,
-    city: String,
-    state: String,
-    country: String,
-    zipCode: String,
-}, { timestamps: true });
-
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: [true, 'User Name Required'],
+        required: true,
         unique: true,
         lowercase: true,
         trim: true,
@@ -21,7 +13,7 @@ const userSchema = new mongoose.Schema({
     },
     fullName: {
         type: String,
-        required: [true, 'Full Name Required'],
+        required: true,
         unique: true,
         lowercase: true,
         trim: true,
@@ -39,9 +31,6 @@ const userSchema = new mongoose.Schema({
     },
     refreshToken: {
         type: String,
-    },
-    address: {
-        type: [AddressSchema]
     },
 }, { timestamps: true });
 
