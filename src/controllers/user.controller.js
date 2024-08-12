@@ -4,20 +4,22 @@ import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utility/ApiResponce.js";
 
 
-const generateAccessTokenAndrefreshToken = async(userId) =>{
-   try{
-      const user = await User.findById(userId)
-      const accessToken = user.generateAccessToken()
-      const refreshToken = user.generateRefreshToken()
-      user.refreshToken = refreshToken;
-      user.save({validateBeforeSave: false})
 
-      return {accessToken, refreshToken}
+const generateAccessTokenAndRefreshToken = async (userId) => {
+   try {
+       const user = await User.findById(userId);
+       const accessToken = user.generateAccessToken();
+       const refreshToken = user.generateRefreshToken();
+
+       user.refreshToken = refreshToken;
+       await user.save({ validateBeforeSave: false }); 
+
+       return { accessToken, refreshToken };
+   } catch (error) {
+       throw new ApiError(500, "Something went wrong while generating access and refresh tokens", error.errors);
    }
-   catch(erorr){
-      throw new ApiError(500, "Something want to wrong")
-   }
-}
+};
+
 
 const registerUser = asyncHandler(async (req, res) => {
    // step-1
@@ -27,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(400, "All fields are required");
     }
    // step-3
-   const existingUser =await User.findOne({
+   const existingUser = await User.findOne({
       $or: [{username}, {email}]
    });
    // step-4
@@ -35,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(409, "user is already exist")
    }
    // step-5
-   const user =await User.create({
+   const user = await User.create({
       username,
       fullName,
       email,
@@ -62,23 +64,23 @@ const loginUser = asyncHandler(async(req, res) => {
       throw new ApiError(400, "Username and Email is required");
    }
    // step-3
-   const user = User.findOne({
+   const user = await User.findOne({
       $or: [{username}, {email}]
-   })
+   });
    // step-4
    if (!user) {
       throw new ApiError(404,"User is not existed");
    }
    // step-5
-   const isPasswordVailid = await user.isPasswordCorrect(password);
+   const isPasswordValid = await user.isPasswordCorrect(password);
    // step-6
-   if (!isPasswordVailid) {
+   if (!isPasswordValid) {
       throw new ApiError(401, "invailid Password");
    }
    // step-7
-   const {accessToken, refreshToken} = await generateAccessTokenAndrefreshToken(user._id);
+   const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
 
-   const loginUsered = await User.findById(user._id).select("-password -refreshToken");
+   const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
    const options = {
       httpOnly: true,
@@ -93,11 +95,11 @@ const loginUser = asyncHandler(async(req, res) => {
       new ApiResponse(
          200,
          {
-            user: loginUsered, accessToken, refreshToken
+            user: loggedInUser, accessToken, refreshToken,
          },
          "User logged In Successfully"
       )
-   )
+   );
 });
 
 const loggOutUser = asyncHandler(async(req, res) =>{
@@ -132,3 +134,5 @@ export {
    loginUser,
    loggOutUser
 };
+
+
