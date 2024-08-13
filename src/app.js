@@ -12,7 +12,8 @@ app.use(cors({
 app.use(express.json({limit: "18kb"}));
 app.use(express.urlencoded({limit: "18kb", extends: true}));
 app.use(express.static("public"));
-app.use(express(cookieParser()));
+app.use(cookieParser());  
+
 
 //routes imports
 import userRouter from './routes/user.routes.js';
