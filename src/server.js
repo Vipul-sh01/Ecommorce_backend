@@ -5,11 +5,10 @@ dotenv.config({
     path:'./.env'
 });
 
-
 connectDB()
     .then(() => {
-        app.listen(process.env.PORT || 4000, () => {
-            console.log(`Server start at port : ${process.env.PORT || 4000}`);
+        app.listen( process.env.PORT || 4000, process.env.IP, () => {
+            console.log(`Server start at port :http://${process.env.IP}:${process.env.PORT || 4000}`);
         });
     })
     .catch((err) => {
