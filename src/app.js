@@ -18,14 +18,17 @@ app.use(cookieParser());
 
 //routes imports
 import userRouter from './routes/user.routes.js';
+import productRoutes from './routes/product.routes.js'
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/product", productRoutes);
 
-// app.use((err, req, res, next) => {
-//     if (err instanceof ApiError) {
-//         return res.status(err.statusCode).json(err.toJson());
-//     }
-//     console.error(err.stack); 
-//     return res.status(500).json({ message: "Internal Server Error" });
-// });
+
+app.use((err, req, res, next) => {
+    if (err instanceof ApiError) {
+        return res.status(err.statusCode).json(err.toJson());
+    }
+    console.error(err.stack); 
+    return res.status(500).json({ message: "Internal Server Error" });
+});
 
  export {app};

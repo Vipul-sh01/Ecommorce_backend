@@ -36,8 +36,6 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
    }
 };
 
-
-
 const registerUser = asyncHandler(async (req, res) => {
    // step-1
    const {username,fullName,email, password}=req.body;   
@@ -199,8 +197,6 @@ const changeCurrentPasword = asyncHandler(async(req, res) =>{
 
    return res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"));
 });
-
-
 
 
 
