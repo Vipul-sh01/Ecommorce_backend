@@ -6,7 +6,11 @@ import { ApiResponse } from "../utility/ApiResponce.js";
 import { User } from "../models/user.models.js";
 
 const publishProduct = asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, price, category, size, color,stock,} = req.body;
+
+    if ([name, description,price, category, size, color, stock].some(field => field?.trim() === "")) {
+        throw new ApiError(404, "All fields are required");
+      }
     const userId = req.user?._id; 
 
     if (!name && !description) {
@@ -21,9 +25,9 @@ const publishProduct = asyncHandler(async (req, res) => {
     if (!user) {
         throw new ApiError(404, 'User not found');
     }
-
-    const productLocalPath = req.file?.productImage?.[0]?.path;
-
+    const productLocalPath = req.files?.productImage?.[0]?.path;
+    console.log(productLocalPath);
+    
     if (!productLocalPath) {
         throw new ApiError(400, 'Product image is required');
     }
@@ -37,6 +41,11 @@ const publishProduct = asyncHandler(async (req, res) => {
     const newProduct = new Product({
         name,
         description,
+        price,
+        category,
+        size,
+        color,
+        stock,
         productImage: productImage.url,
         user: userId,
     });

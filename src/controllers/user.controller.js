@@ -14,7 +14,7 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
            throw new ApiError(404, "User not found");
        }
 
-       const accessToken = user.generateAccessToken();
+       const accessToken = user.generateAccessToken(); 
        const refreshToken = user.generateRefreshToken();
 
        if (!accessToken || !refreshToken) {
@@ -94,7 +94,7 @@ const loginUser = asyncHandler(async(req, res) => {
    }
    // step-7
    const { accessToken, refreshToken } = await generateAccessTokenAndRefreshToken(user._id);
-
+   
    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
    const options = {

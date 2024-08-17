@@ -16,7 +16,7 @@ const productSchema = new mongoose.Schema({
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true,
+        required: false,
     },
     size: {
         type: Number,
@@ -31,11 +31,6 @@ const productSchema = new mongoose.Schema({
     },
     stock: {
         type: Number,
-        required: true,
-    },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
         required: true,
     },
 }, { timestamps: true });
