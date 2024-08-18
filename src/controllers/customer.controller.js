@@ -10,15 +10,12 @@ const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUT
 
 const otpSend = asyncHandler(async (req, res) => {
     const { mobileNumber } = req.body;
-    console.log("Mobile Number:", mobileNumber);
     
     const otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = Date.now() + 10 * 60 * 1000; 
-
-
+    
     const otpString = otp.toString();
     const hashedOtp = await bcrypt.hash(otpString, 10);
-    console.log(hashedOtp);
     
     const existingCustomer = await Customer.findOne({ mobileNumber }); 
     if (existingCustomer) {
