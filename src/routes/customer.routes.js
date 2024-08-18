@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { otpSend } from '../controllers/costomer.controller.js';
+import { otpSend, otpVerify } from '../controllers/customer.controller.js';
 
 const router = Router();
 router.route('/sendOtp').post(otpSend);
+router.route('/otpVerify').post(otpVerify);
 
 export default router;

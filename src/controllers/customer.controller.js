@@ -1,8 +1,10 @@
 import { asyncHandler } from '../utility/asyncHandler.js';
-import { Costomer } from "../models/costomer/costomer.models.js";
+import { Customer } from "../models/customer/customer.models.js"; 
 import twilio from "twilio";
 import { ApiError } from "../utility/ApiError.js";
-import { ApiResponse } from "../utility/ApiResponce.js" 
+import { ApiResponse } from "../utility/ApiResponce.js"; 
+import bcrypt from "bcrypt";
+
 
 const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -10,19 +12,25 @@ const otpSend = asyncHandler(async (req, res) => {
     const { mobileNumber } = req.body;
     console.log("Mobile Number:", mobileNumber);
     
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = Date.now() + 10 * 60 * 1000; 
 
-    const existingCostomer = await Costomer.findOne({ mobileNumber });
-    if(existingCostomer){
-        throw new ApiError(400, "User is exist");
+
+    const otpString = otp.toString();
+    const hashedOtp = await bcrypt.hash(otpString, 10);
+    console.log(hashedOtp);
+    
+    const existingCustomer = await Customer.findOne({ mobileNumber }); 
+    if (existingCustomer) {
+        throw new ApiError(400, "User already exists");
     }
 
-    const costomer = new Costomer({
+    const customer = new Customer({ 
         mobileNumber,
-        otp,
+        otp: hashedOtp,
         otpExpires
     });
+    await customer.save();
     try {
         await client.messages.create({
             body: `Your verification code is ${otp}`,
@@ -40,25 +48,24 @@ const otpSend = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, null, "OTP sent successfully"));
 });
 
-
-const otpVerify = asyncHandler(async(req, res) =>{
-    const {mobileNumber,otp } = req.body;
+const otpVerify = asyncHandler(async (req, res) => {
+    const { otp } = req.body;
     
-    const costomer = await Costomer.findOne({ mobileNumber });
-    if (!costomer) {
-        throw new ApiError(400, "Customer not found");
-    }
-
-    if (costomer.otp !== otp) { 
+    const customer = await Customer.findOne({ otpExpires: { $gt: Date.now() } }); 
+    
+    const isMatch = await bcrypt.compare(otp.toString(), customer.otp);
+    if (!isMatch) {
         throw new ApiError(400, "Invalid OTP");
     }
-
+    customer.otp = undefined;
+    customer.otpExpires = undefined;
+    await customer.save({ validateBeforeSave: false })
     return res
         .status(200)
-        .json(new ApiResponse(200, costomer, "OTP verified successfully"));
-})
+        .json(new ApiResponse(200, customer, "OTP verified successfully"));
+});
 
 export { 
     otpSend,
     otpVerify
- };
+};

@@ -22,8 +22,12 @@ import productRoutes from './routes/product.routes.js';
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/product", productRoutes);
 // for costomer
-import costomerRouter from './routes/costomer.routes.js'
-app.use("/api/v1/costomer", costomerRouter);
+import customerRouter from './routes/customer.routes.js'
+app.use("/api/v1/costomer", customerRouter);
+
+
+
+
 app.use((err, req, res, next) => {
     if (err instanceof ApiError) {
         return res.status(err.statusCode).json(err.toJson());
