@@ -8,30 +8,38 @@ const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUT
 
 const otpSend = asyncHandler(async (req, res) => {
     const { mobileNumber } = req.body;
-
+    console.log("Mobile Number:", mobileNumber);
+    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = Date.now() + 10 * 60 * 1000; 
 
-    const costomer = await Costomer.findOne({ mobileNumber });
-
-    if (!costomer) {
-        throw new ApiError(400, "Customer not found");
+    const existingCostomer = await Costomer.findOne({ mobileNumber });
+    if(existingCostomer){
+        throw new ApiError(400, "User is exist");
     }
 
-    costomer.otp = otp;
-    costomer.otpExpires = otpExpires;
-    await costomer.save();
-
-    await client.messages.create({
-        body: `Your verification code is ${otp}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: mobileNumber
+    const costomer = new Costomer({
+        mobileNumber,
+        otp,
+        otpExpires
     });
+    try {
+        await client.messages.create({
+            body: `Your verification code is ${otp}`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: mobileNumber
+        })
+        .then(message => console.log(message.sid))
+        .catch(error => console.error('Error sending OTP via Twilio:', error));
+    } catch (error) {
+        throw new ApiError(500, "Failed to send OTP");
+    }
 
     return res
         .status(200)
         .json(new ApiResponse(200, null, "OTP sent successfully"));
 });
+
 
 const otpVerify = asyncHandler(async(req, res) =>{
     const {mobileNumber,otp } = req.body;
