@@ -21,10 +21,14 @@ const customerSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// customerSchema.pre("save", async function(next) {
-//   if (!this.isModified("otp")) return next();
-//   this.otp = await bcrypt.hash(this.otp, 10);
-//   next();
-// });
+customerSchema.pre("save", async function(next) {
+  if (!this.isModified("otp")) return next();
+  this.otp = await bcrypt.hash(this.otp, 10);
+  next();
+});
+
+customerSchema.methods.isOtpCurrect = async function(otp) {
+  return await bcrypt.compare(otp.toString(), this.otp);
+};
 
 export const Customer = mongoose.model("Customer", customerSchema);

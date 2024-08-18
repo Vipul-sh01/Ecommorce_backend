@@ -3,7 +3,6 @@ import { Customer } from "../models/customer/customer.models.js";
 import twilio from "twilio";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponce.js"; 
-import bcrypt from "bcrypt";
 
 
 const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -13,18 +12,20 @@ const otpSend = asyncHandler(async (req, res) => {
     
     const otp = Math.floor(100000 + Math.random() * 900000);
     const otpExpires = Date.now() + 10 * 60 * 1000; 
-    
-    const otpString = otp.toString();
-    const hashedOtp = await bcrypt.hash(otpString, 10);
+
+    // const otpString = otp.toString();
+    // const hashedOtp = await bcrypt.hash(otpString, 10);
     
     const existingCustomer = await Customer.findOne({ mobileNumber }); 
+
     if (existingCustomer) {
         throw new ApiError(400, "User already exists");
     }
 
     const customer = new Customer({ 
         mobileNumber,
-        otp: hashedOtp,
+        otp,
+        // otp: hashedOtp,
         otpExpires
     });
     await customer.save();
@@ -48,15 +49,19 @@ const otpSend = asyncHandler(async (req, res) => {
 const otpVerify = asyncHandler(async (req, res) => {
     const { otp } = req.body;
     
-    const customer = await Customer.findOne({ otpExpires: { $gt: Date.now() } }); 
-    
-    const isMatch = await bcrypt.compare(otp.toString(), customer.otp);
-    if (!isMatch) {
+    const customer = await Customer.findOne({ otpExpires: { $gt: Date.now() } });
+    if (!customer) {
         throw new ApiError(400, "Invalid OTP");
     }
+
+    // const isMatch = await bcrypt.compare(otp.toString(), customer.otp);
+    // if (!isMatch) {
+    //     throw new ApiError(400, "Invalid OTP");
+    // }
     customer.otp = undefined;
     customer.otpExpires = undefined;
-    await customer.save({ validateBeforeSave: false })
+    await customer.save({ validateBeforeSave: false });
+    const { otp: removedOtp, otpExpires, ...customerWithoutOtp } = customer.toObject();
     return res
         .status(200)
         .json(new ApiResponse(200, customer, "OTP verified successfully"));
