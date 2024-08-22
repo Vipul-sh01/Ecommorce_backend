@@ -7,6 +7,29 @@ import { ApiResponse } from "../utility/ApiResponce.js";
 
 const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
+const generateAccessTokenAndRefreshToken = async(customerId) =>{
+    try {
+        const customer = await Customer.findById(customerId);
+        if (!customer) {
+            throw new ApiError(400, "Customer not found");
+        }
+        const accessToken = customer.generateAccessToken();
+        const refreshToken = customer.generateRefreshToken();
+
+        if (!accessToken || !refreshToken) {
+            throw new ApiError(500, "Token generation failed");
+        }
+ 
+        customer.refreshToken = refreshToken;
+        await customer.save({ validateBeforeSave: false });
+ 
+        return { accessToken, refreshToken };
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating access and refresh tokens", error.errors);
+    }
+}
+
 const otpSend = asyncHandler(async (req, res) => {
     const { mobileNumber } = req.body;
     
@@ -60,17 +83,51 @@ const otpVerify = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid OTP");
     }
 
-    customer.otp = undefined;
-    customer.otpExpires = undefined;
-    await customer.save({ validateBeforeSave: false });
-    const { otp: removedOtp, otpExpires, ...customerWithoutOtp } = customer.toObject();
+   const{accessToken, refreshToken} =await generateAccessTokenAndRefreshToken(customer._id);
+   const signIn = await Customer.findById(customer._id).select("-otp -refreshToken -otpExpires");
+
+    // customer.otp = undefined;
+    // customer.otpExpires = undefined;
+    // await customer.save({ validateBeforeSave: false });
+    // const { otp: removedOtp, otpExpires, ...customerWithoutOtp } = customer.toObject();
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
     return res
         .status(200)
-        .json(new ApiResponse(200, customerWithoutOtp, "OTP verified successfully"));
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(new ApiResponse(200, {customer: signIn, accessToken, refreshToken}, "OTP verified successfully"));
 });
 
+const customerlogOut = asyncHandler(async(req, res) =>{
+    Customer.findByIdAndUpdate(
+        req.customer._id,
+        {
+            $unset: {
+                refreshToken: 1
+             }
+        },
+        {
+            new: true
+        }
+    )
 
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+   .status(200)
+   .clearCookie("accessToken", options)
+   .clearCookie("refreshToken", options)
+   .json(new ApiResponse(200,{}, "Customer logged Out"));
+})
 export { 
     otpSend,
-    otpVerify
+    otpVerify,
+    customerlogOut
 };
