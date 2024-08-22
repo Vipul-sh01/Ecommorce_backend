@@ -51,21 +51,24 @@ const otpVerify = asyncHandler(async (req, res) => {
     
     const customer = await Customer.findOne({ otpExpires: { $gt: Date.now() } });
     if (!customer) {
+        throw new ApiError(400, "OTP has expired.");
+    }
+
+    const isOtpValid = await customer.isOtpCorrect(otp);
+    
+    if (!isOtpValid) {
         throw new ApiError(400, "Invalid OTP");
     }
 
-    // const isMatch = await bcrypt.compare(otp.toString(), customer.otp);
-    // if (!isMatch) {
-    //     throw new ApiError(400, "Invalid OTP");
-    // }
     customer.otp = undefined;
     customer.otpExpires = undefined;
     await customer.save({ validateBeforeSave: false });
     const { otp: removedOtp, otpExpires, ...customerWithoutOtp } = customer.toObject();
     return res
         .status(200)
-        .json(new ApiResponse(200, customer, "OTP verified successfully"));
+        .json(new ApiResponse(200, customerWithoutOtp, "OTP verified successfully"));
 });
+
 
 export { 
     otpSend,
