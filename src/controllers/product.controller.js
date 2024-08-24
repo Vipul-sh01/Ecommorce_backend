@@ -4,9 +4,17 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponce.js";
 import { User } from "../models/user.models.js";
+import { Category } from "../models/category.models.js";
 
 const publishProduct = asyncHandler(async (req, res) => {
     const { name, description, price, category, size, color,stock,} = req.body;
+    const categoryItem = await Category.findOne({categoryName: category});
+    console.log(categoryItem);
+    
+
+    if (!categoryItem) {
+        throw new ApiError(400, "invalid Category");
+    }
 
     if ([name, description,price, category, size, color, stock].some(field => field?.trim() === "")) {
         throw new ApiError(404, "All fields are required");
@@ -42,7 +50,7 @@ const publishProduct = asyncHandler(async (req, res) => {
         name,
         description,
         price,
-        category,
+        category: categoryItem._id,
         size,
         color,
         stock,

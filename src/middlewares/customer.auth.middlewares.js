@@ -1,6 +1,6 @@
 import { Customer } from "../models/customer/customer.models.js";
-import { ApiError } from "../utility/ApiError";
-import { asyncHandler } from "../utility/asyncHandler";
+import { ApiError } from "../utility/ApiError.js";
+import { asyncHandler } from '../utility/asyncHandler.js'
 import jwt from "jsonwebtoken";
 
 

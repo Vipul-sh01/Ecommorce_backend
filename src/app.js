@@ -21,10 +21,13 @@ import userRouter from './routes/user.routes.js';
 import productRoutes from './routes/product.routes.js';
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/product", productRoutes);
+// for category
+import categoryRouter from './routes/category.routes.js';
+app.use("/api/v1/category", categoryRouter);
+
 // for costomer
 import customerRouter from './routes/customer.routes.js'
 app.use("/api/v1/costomer", customerRouter);
-
 
 
 
