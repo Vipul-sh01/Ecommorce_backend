@@ -21,12 +21,12 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
            throw new ApiError(500, "Token generation failed");
        }
 
-       console.log("Generated Tokens:", { accessToken, refreshToken });
+      //  console.log("Generated Tokens:", { accessToken, refreshToken });
 
        user.refreshToken = refreshToken;
        await user.save({ validateBeforeSave: false });
 
-       console.log("User after saving:", user);
+      //  console.log("User after saving:", user);
 
        return { accessToken, refreshToken };
    } 
