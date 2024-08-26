@@ -4,15 +4,10 @@ import { asyncHandler } from "../utility/asyncHandler.js";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponce.js";
 import { User } from "../models/user.models.js";
-import { Category } from "../models/category.models.js";
-
 
 const publishProduct = asyncHandler(async (req, res) => {
     const { name, description, price, size, color,stock,} = req.body;
-    const { categoryId } = req.params;
-    
-    
-    
+   
     if ([name, description,price, size, color, stock].some(field => field?.trim() === "")) {
         throw new ApiError(404, "All fields are required");
       }
@@ -48,18 +43,51 @@ const publishProduct = asyncHandler(async (req, res) => {
         name,
         description,
         price,
-        category: categoryId,
         size,
         color,
         stock,
         productImage: productImage.url,
         user: userId,
     });
-
     await newProduct.save(); 
 
+    const categoriesProduct = await Product.aggregate([
+        {
+            $lookup: {
+              from: "categories",         
+              localField: "category",   
+              foreignField: "size",        
+              as: "categoryDetails"       
+            }
+          },
+          {
+            $unwind: "$categoryDetails"    
+          },
+          {
+            $group: {
+              _id: "$categoryDetails.categoryName", 
+              products: { $push: "$$ROOT" }         
+            }
+          },
+          {
+            $project: {
+              _id: 0,                                
+              categoryName: "$_id",                  
+              products: 1                            
+            }
+         }
+        
+    ])
+    console.log(categoriesProduct);
+     
+
+    if (!categoriesProduct) {
+        throw new ApiError(400, "vipul sharma");
+    }
+
+
     return res.status(201).json(
-        new ApiResponse(201, newProduct, 'Product image uploaded successfully') 
+        new ApiResponse(201, newProduct, categoriesProduct, 'Product image uploaded successfully') 
     );
 });
 
