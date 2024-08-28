@@ -5,6 +5,8 @@ import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponce.js";
 import { User } from "../models/user.models.js";
 
+
+
 const publishProduct = asyncHandler(async (req, res) => {
     const { name, description, price, size, color,stock,} = req.body;
    
@@ -91,4 +93,4 @@ const publishProduct = asyncHandler(async (req, res) => {
     );
 });
 
-export { publishProduct };
+export { publishProduct};

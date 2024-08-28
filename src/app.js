@@ -26,9 +26,10 @@ import categoryRouter from './routes/category.routes.js';
 app.use("/api/v1/category", categoryRouter);
 
 // for costomer
-import customerRouter from './routes/customer.routes.js'
+import customerRouter from './routes/customer.routes.js';
+import productBrowser from './routes/customer.browser.routes.js'
 app.use("/api/v1/costomer", customerRouter);
-
+app.use("/api/v1/Browser", productBrowser);
 
 
 app.use((err, req, res, next) => {
