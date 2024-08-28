@@ -4,5 +4,5 @@ import { verifyJwt } from "../middlewares/customer.auth.middlewares.js";
 const router = Router();
 
 router.route('/getAllProduct').get(verifyJwt, getAllProduct);
-router.route('/search').get(verifyJwt, searchProducts);
+router.route('/search').post(verifyJwt, searchProducts);
 export default router;
