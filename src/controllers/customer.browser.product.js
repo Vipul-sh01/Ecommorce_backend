@@ -19,8 +19,9 @@ export const getAllProduct = asyncHandler(async (req, res) => {
             .skip((page - 1) * limit)
             .limit(Number(limit));
         const total = await Product.countDocuments(filter);
-    
+
         res.status(200).json(new ApiResponse(200, products, { total, page, limit }, "All products available"));
+        
     } catch (error) {
         throw new ApiError(500, "internal Error");
     }  
