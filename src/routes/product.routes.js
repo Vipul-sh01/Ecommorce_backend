@@ -7,4 +7,5 @@ const router = Router();
 router.use(verifyJWT);
 
 router.route('/publish').post(upload.fields([{name: 'productImage', maxCount:1,},],), publishProduct);
+
 export default router;
